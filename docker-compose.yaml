@@ -1,0 +1,28 @@
+services:
+  app:
+    build: ./
+    ports:
+      - "5171:5171"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development  # ou Production, conforme necessário
+    depends_on:
+      - db
+    networks:
+      - default_network
+    volumes:
+      - ./mnt:/app/Logs
+
+  db:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    ports:
+      - "5432:5432"
+    networks:
+      - default_network
+
+networks:
+  default_network:
+    driver: bridge

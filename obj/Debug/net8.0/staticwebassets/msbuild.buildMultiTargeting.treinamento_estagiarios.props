@@ -1,0 +1,3 @@
+﻿<Project>
+  <Import Project="../build/treinamento_estagiarios.props" />
+</Project>
