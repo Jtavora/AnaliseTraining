@@ -4,8 +4,6 @@ services:
   app:
     container_name: app_backend
     build: ./
-    ports:
-      - "5171:5171"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
     depends_on:
@@ -33,6 +31,7 @@ services:
       - "80:80"
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./mnt:/app/logs
     depends_on:
       - app
     networks:
