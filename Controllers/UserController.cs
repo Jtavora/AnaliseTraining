@@ -74,5 +74,33 @@ namespace treinamento_estagiarios.Controllers
                 return StatusCode(500, new { error = "Internal server error while retrieving user" });
             }
         }
+
+        // POST: api/users
+        [HttpPost]
+        public async Task<IActionResult> CreateUser([FromBody] User newUser)
+        {
+            _logger.LogInformation("\n\nRequest received: POST /api/users");
+
+            try
+            {
+                var existingUser = await _context.Users.FirstOrDefaultAsync(u => u.Email == newUser.Email);
+                if (existingUser != null)
+                {
+                    _logger.LogWarning($"Email already in use: {newUser.Email}");
+                    return Conflict(new { error = "Email already in use" });
+                }
+
+                _context.Users.Add(newUser);
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation($"User created: {newUser.Name} ({newUser.Email})");
+                return CreatedAtAction(nameof(GetUserById), new { id = newUser.Id }, newUser);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error creating user: {ex.Message}");
+                return StatusCode(500, new { error = "Internal server error while creating user" });
+            }
+        }
     }
 }
