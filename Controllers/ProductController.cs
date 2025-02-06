@@ -26,7 +26,7 @@ namespace treinamento_estagiarios.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAllProducts()
         {
-            _logger.LogInformation("Request received: GET /api/products");
+            _logger.LogInformation("\n\nRequest received: GET /api/products");
 
             try
             {
@@ -59,7 +59,7 @@ namespace treinamento_estagiarios.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetProductById(int id)
         {
-            _logger.LogInformation($"Request received: GET /api/products/{id}");
+            _logger.LogInformation($"\n\nRequest received: GET /api/products/{id}");
 
             try
             {
@@ -87,7 +87,7 @@ namespace treinamento_estagiarios.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateProduct(int id, [FromBody] MockProductResquest updatedProduct)
         {
-            _logger.LogInformation($"Request received: PUT /api/products/{id}");
+            _logger.LogInformation($"\n\nRequest received: PUT /api/products/{id}");
 
             try
             {
@@ -121,7 +121,7 @@ namespace treinamento_estagiarios.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteProduct(int id)
         {
-            _logger.LogInformation($"Request received: DELETE /api/products/{id}");
+            _logger.LogInformation($"\n\nRequest received: DELETE /api/products/{id}");
 
             try
             {
@@ -154,7 +154,7 @@ namespace treinamento_estagiarios.Controllers
         [HttpGet("search")]
         public async Task<IActionResult> SearchProducts(string name)
         {
-            _logger.LogInformation("Request received: GET /api/products/search");
+            _logger.LogInformation("\n\nRequest received: GET /api/products/search");
 
             try
             {

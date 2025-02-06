@@ -25,7 +25,7 @@ namespace treinamento_estagiarios.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAllUsers()
         {
-            _logger.LogInformation("Request received: GET /api/users");
+            _logger.LogInformation("\n\nRequest received: GET /api/users");
 
             try
             {
@@ -75,7 +75,7 @@ namespace treinamento_estagiarios.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetUserById(int id)
         {
-            _logger.LogInformation($"Request received: GET /api/users/{id}");
+            _logger.LogInformation($"\n\nRequest received: GET /api/users/{id}");
 
             try
             {
@@ -125,7 +125,7 @@ namespace treinamento_estagiarios.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateUser([FromBody] MockUserRequest newUser)
         {
-            _logger.LogInformation("Request received: POST /api/users");
+            _logger.LogInformation("\n\nRequest received: POST /api/users");
 
             try
             {
