@@ -9,8 +9,26 @@ namespace treinamento_estagiarios.Data
         {
         }
 
-        // DbSet para cada model (representa uma tabela no banco)
         public DbSet<User> Users { get; set; }
         public DbSet<Product> Products { get; set; }
+        public DbSet<UserProduct> UserProducts { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<UserProduct>()
+                .HasKey(up => new { up.UserId, up.ProductId });
+
+            modelBuilder.Entity<UserProduct>()
+                .HasOne(up => up.User)
+                .WithMany(u => u.UserProducts)
+                .HasForeignKey(up => up.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<UserProduct>()
+                .HasOne(up => up.Product)
+                .WithMany(p => p.UserProducts)
+                .HasForeignKey(up => up.ProductId)
+                .OnDelete(DeleteBehavior.Cascade);
+        }
     }
 }

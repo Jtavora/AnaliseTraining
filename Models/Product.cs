@@ -9,20 +9,15 @@ namespace treinamento_estagiarios.Models
 {
     public class Product
     {
-        public int Id { get; set; } // Chave primária
+        public int Id { get; set; } 
         
         [Column(TypeName = "varchar(100)")]
-        public string Name { get; set; } // Nome do produto
-
+        public string Name { get; set; } 
+        
         [Column(TypeName = "decimal(18,2)")]
-        public decimal Price { get; set; } // Preço do produto
+        public decimal Price { get; set; }
 
-        [Column(TypeName = "int")]
-        public int UserId { get; set; } // FK para User
-
-        [ForeignKey(nameof(UserId))] // Corrige a referência
-
-        [JsonIgnore] // Prevent serialization loop
-        public User User { get; set; } // Relacionamento com User
+        [JsonIgnore]
+        public ICollection<UserProduct> UserProducts { get; set; }
     }
 }

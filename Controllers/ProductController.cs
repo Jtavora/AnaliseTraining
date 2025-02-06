@@ -4,6 +4,9 @@ using Microsoft.EntityFrameworkCore;
 using treinamento_estagiarios.Models;
 using treinamento_estagiarios.Data;
 using System.Text.Json;
+using treinamento_estagiarios.Request;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace treinamento_estagiarios.Controllers
 {
@@ -20,52 +23,52 @@ namespace treinamento_estagiarios.Controllers
             _logger = logger;
         }
 
-        // GET: api/products
         [HttpGet]
         public async Task<IActionResult> GetAllProducts()
         {
-            _logger.LogInformation("\n\nRequest received: GET /api/products");
+            _logger.LogInformation("Request received: GET /api/products");
 
             try
             {
-                var products = await _context.Products.Include(p => p.User).ToListAsync();
+                var products = await _context.Products.Include(p => p.UserProducts).ThenInclude(up => up.User).ToListAsync();
 
-                var productsJson = JsonSerializer.Serialize(products, new JsonSerializerOptions
+                foreach (var product in products)
                 {
-                    WriteIndented = true
-                });
+                    if (product.Price < 0)
+                    {
+                        _logger.LogWarning($"Invalid price: {product.Price}");
+                        return BadRequest(new { error = "Error!" });
+                    }
+                }
 
-                _logger.LogInformation($"Response sent: {productsJson}");
                 return Ok(products);
             }
             catch (Exception ex)
             {
-                _logger.LogError($"\n\nError retrieving products: {ex.Message}");
+                _logger.LogError($"Error retrieving products: {ex.Message}");
                 return StatusCode(500, new { error = "Internal server error while retrieving products" });
             }
         }
 
-        // GET: api/products/{id}
         [HttpGet("{id}")]
         public async Task<IActionResult> GetProductById(int id)
         {
-            _logger.LogInformation($"\n\nRequest received: GET /api/products/{id}");
+            _logger.LogInformation($"Request received: GET /api/products/{id}");
 
             try
             {
-                var product = await _context.Products.Include(p => p.User).FirstOrDefaultAsync(p => p.Id == id);
+                var product = await _context.Products.Include(p => p.UserProducts).ThenInclude(up => up.User).FirstOrDefaultAsync(p => p.Id == id);
                 if (product == null)
                 {
                     _logger.LogWarning($"Product not found: ID {id}");
-                    return NotFound(new { error = "Product not found" });
+                    return NotFound(new { error = "Product not found!" });
+                }
+                else if (product.Price < 0)
+                {
+                    _logger.LogWarning($"Invalid price: {product.Price}");
+                    return BadRequest(new { error = "Error!" });
                 }
 
-                var productJson = JsonSerializer.Serialize(product, new JsonSerializerOptions
-                {
-                    WriteIndented = true
-                });
-
-                _logger.LogInformation($"Response sent: {productJson}");
                 return Ok(product);
             }
             catch (Exception ex)
@@ -74,32 +77,25 @@ namespace treinamento_estagiarios.Controllers
                 return StatusCode(500, new { error = "Internal server error while retrieving product" });
             }
         }
-        // PUT: api/products/{id}
+
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateProduct(int id, [FromBody] Product updatedProduct)
+        public async Task<IActionResult> UpdateProduct(int id, [FromBody] MockProductResquest updatedProduct)
         {
-            _logger.LogInformation($"\n\nRequest received: PUT /api/products/{id}");
+            _logger.LogInformation($"Request received: PUT /api/products/{id}");
 
             try
             {
-                var product = await _context.Products.FirstOrDefaultAsync(p => p.Id == id);
+                var product = await _context.Products.FindAsync(id);
                 if (product == null)
                 {
                     _logger.LogWarning($"Product not found: ID {id}");
                     return NotFound(new { error = "Product not found" });
                 }
 
-                // Validations
-                if (updatedProduct.Price < 0)
+                if (updatedProduct.Price < 0 || string.IsNullOrEmpty(updatedProduct.Name) || updatedProduct.Name.Length < 3)
                 {
-                    _logger.LogWarning($"Invalid price: {updatedProduct.Price}");
-                    return BadRequest(new { error = "Price cannot be negative" });
-                }
-
-                if (string.IsNullOrEmpty(updatedProduct.Name) || updatedProduct.Name.Length < 3)
-                {
-                    _logger.LogWarning($"Invalid product name: {updatedProduct.Name}");
-                    return BadRequest(new { error = "Product name must be at least 3 characters long" });
+                    _logger.LogWarning("Invalid product data");
+                    return BadRequest(new { error = "Invalid product data!" });
                 }
 
                 product.Name = updatedProduct.Name;
@@ -116,26 +112,24 @@ namespace treinamento_estagiarios.Controllers
             }
         }
 
-        // DELETE: api/products/{id}
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteProduct(int id)
         {
-            _logger.LogInformation($"\n\nRequest received: DELETE /api/products/{id}");
+            _logger.LogInformation($"Request received: DELETE /api/products/{id}");
 
             try
             {
-                var product = await _context.Products.FirstOrDefaultAsync(p => p.Id == id);
+                var product = await _context.Products.Include(p => p.UserProducts).FirstOrDefaultAsync(p => p.Id == id);
                 if (product == null)
                 {
                     _logger.LogWarning($"Product not found: ID {id}");
                     return NotFound(new { error = "Product not found" });
                 }
 
-                // Verifica se o produto tem dependências
-                if (product.UserId == 0)  // Exemplo de validação fictícia de dependência
+                if (product.UserProducts.Any())
                 {
-                    _logger.LogWarning($"Cannot delete product with no user assigned: ID {id}");
-                    return Conflict(new { error = "Cannot delete product with no user assigned" });
+                    _logger.LogWarning($"Cannot delete product assigned to users: ID {id}");
+                    return Conflict(new { error = "Cannot delete product assigned to users" });
                 }
 
                 _context.Products.Remove(product);
@@ -151,31 +145,27 @@ namespace treinamento_estagiarios.Controllers
             }
         }
 
-        // GET: api/products/search?name=some_search_term
         [HttpGet("search")]
         public async Task<IActionResult> SearchProducts(string name)
         {
-            _logger.LogInformation("\n\nRequest received: GET /api/products/search");
+            _logger.LogInformation("Request received: GET /api/products/search");
 
             try
             {
-                // Verifica se o termo de pesquisa foi fornecido
                 if (string.IsNullOrEmpty(name))
                 {
                     return BadRequest(new { error = "Search name must not be empty" });
                 }
 
-                // Realiza a busca com LIKE
                 var products = await _context.Products
-                                            .Where(p => p.Name.Contains(name))
-                                            .ToListAsync();
+                    .Where(p => p.Name.Contains(name))
+                    .ToListAsync();
 
-                if (products == null || !products.Any())
+                if (!products.Any())
                 {
                     return NotFound(new { message = "No products found matching the search name" });
                 }
 
-                // Retorna os resultados
                 _logger.LogInformation($"Response sent: {products.Count} products found");
                 return Ok(products);
             }
