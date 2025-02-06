@@ -32,11 +32,17 @@ namespace treinamento_estagiarios.Controllers
             {
                 var products = await _context.Products.Include(p => p.UserProducts).ThenInclude(up => up.User).ToListAsync();
 
+                if (!products.Any())
+                {
+                    _logger.LogWarning("No products found");
+                    return NotFound(new { error = "No products found!" });
+                }
+
                 foreach (var product in products)
                 {
                     if (product.Price < 0)
                     {
-                        _logger.LogWarning($"Invalid price: {product.Price}");
+                        _logger.LogWarning($"Invalid price for product {product.Id}: {product.Price}");
                         return BadRequest(new { error = "Error!" });
                     }
                 }
