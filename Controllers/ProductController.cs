@@ -183,5 +183,37 @@ namespace treinamento_estagiarios.Controllers
                 return StatusCode(500, new { error = "Internal server error while searching products" });
             }
         }
+
+        [HttpPost]
+        public async Task<IActionResult> CreateProduct([FromBody] MockProductResquest newProduct)
+        {
+            _logger.LogInformation("\n\nRequest received: POST /api/products");
+
+            try
+            {
+                if (string.IsNullOrEmpty(newProduct.Name) || newProduct.Name.Length < 3)
+                {
+                    _logger.LogWarning("Invalid product data");
+                    return BadRequest(new { error = "Invalid product data!" });
+                }
+
+                var product = new Product
+                {
+                    Name = newProduct.Name,
+                    Price = newProduct.Price
+                };
+
+                await _context.Products.AddAsync(product);
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation($"Product created: {product.Name} ({product.Price:C})");
+                return CreatedAtAction(nameof(GetProductById), new { id = product.Id }, product);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error creating product: {ex.Message}");
+                return StatusCode(500, new { error = "Internal server error while creating product" });
+            }
+        }
     }
 }
