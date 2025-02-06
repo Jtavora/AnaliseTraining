@@ -47,6 +47,7 @@ namespace treinamento_estagiarios.Controllers
                     }
                 }
 
+                _logger.LogInformation($"Response sent: {JsonSerializer.Serialize(products)}");
                 return Ok(products);
             }
             catch (Exception ex)
@@ -75,6 +76,7 @@ namespace treinamento_estagiarios.Controllers
                     return BadRequest(new { error = "Error!" });
                 }
 
+                _logger.LogInformation($"Response sent: {JsonSerializer.Serialize(product)}");
                 return Ok(product);
             }
             catch (Exception ex)
@@ -172,7 +174,7 @@ namespace treinamento_estagiarios.Controllers
                     return NotFound(new { message = "No products found matching the search name" });
                 }
 
-                _logger.LogInformation($"Response sent: {products.Count} products found");
+                _logger.LogInformation($"Response sent: {JsonSerializer.Serialize(products)}");
                 return Ok(products);
             }
             catch (Exception ex)
