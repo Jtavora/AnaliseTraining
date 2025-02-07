@@ -130,9 +130,7 @@ namespace treinamento_estagiarios.Controllers
             try
             {
                 if (string.IsNullOrWhiteSpace(newUser.Name) || 
-                    string.IsNullOrWhiteSpace(newUser.Email) || 
-                    newUser.ProductsId == null || 
-                    !newUser.ProductsId.Any())
+                    string.IsNullOrWhiteSpace(newUser.Email))
                 {
                     _logger.LogWarning("Required fields missing. Payload: " + JsonSerializer.Serialize(newUser));
                     return BadRequest(new { error = "Payload error!" });
@@ -152,7 +150,7 @@ namespace treinamento_estagiarios.Controllers
                 if (!products.Any())
                 {
                     _logger.LogWarning("No valid products found for user creation.");
-                    return BadRequest(new { error = "Invalid products provided" });
+                    return BadRequest(new { error = "Error!" });
                 }
 
                 var user = new User
